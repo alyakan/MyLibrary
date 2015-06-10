@@ -4,9 +4,12 @@
 	<title>MyLibrary</title>
 </head>
 <body>
-<h1>Welcome To MyLibrary</h1>
 	{% if user.is_authenticated %}
+		<h1>Welcome {{ user.username }}</h1>
+	{% else %}
+		<h1>Welcome To MyLibrary</h1>
 		<h3><a href="/main/register/">Register Here</a></h3>
+		<h4><a href="/main/login/">Login</a></h4>
 	{% endif %}
 </body>
 </html>
