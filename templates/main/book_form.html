@@ -8,18 +8,9 @@
         <h1>Add a Book</h1>
 
         <form id="bookform" method="post">
-
             {% csrf_token %}
-            {% for hidden in form.hidden_fields %}
-                {{ hidden }}
-            {% endfor %}
-
-            {% for field in form.visible_fields %}
-                {{ field.errors }}
-                {{ field.help_text }}
-                {{ field.label_tag }}
-                {{ field }}
-            {% endfor %}
+            {{ form.name }}
+            {{ form.author }}
             <input hidden id="library" size="20" type="text" name="library" value={{ library.id }}  >
             <input type="submit" name="submit" value="Create Book" />
         </form>

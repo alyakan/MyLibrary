@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView, DetailView
-from main.forms import UserForm
+from main.forms import UserForm, BookForm
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -46,8 +46,9 @@ class IndexView(TemplateView):
 
 class BookCreate(CreateView):
     model = Book
-    fields = ['name', 'author', 'library']
-    success_url = reverse_lazy('main')
+    # fields = ['name', 'author', 'library']
+    form_class = BookForm
+    success_url = reverse_lazy('index')
     template_name = 'main/book_form.html'
 
     def get_context_data(self, **kwargs):
