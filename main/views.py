@@ -32,13 +32,16 @@ class IndexView(TemplateView):
 
         Author: Aly Yakan
         """
+        context = super(IndexView, self).get_context_data(**kwargs)
         if self.request.user.is_authenticated():
-            current_user_id = self.request.user.id
+            current_user_id = self.request.user
             try:
-                lib_id = Library.objects.filter(owner_id=current_user_id)
+                lib_id = Library.objects.get(owner_id=current_user_id).id
+                context['lib_id'] = lib_id
+                context['lib_slug'] = Library.objects.get(id=lib_id).slug
             except:
                 lib_id = ""
-            return {'lib_id': lib_id}
+            return context
 
 
 class LibraryCreate(CreateView):
