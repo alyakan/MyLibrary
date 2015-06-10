@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>MyLibrary</title>
+</head>
+<body>
+<h1>Welcome To MyLibrary</h1>
+	{% if user.is_authenticated %}
+		<h3><a href="/main/register/">Register Here</a></h3>
+	{% endif %}
+</body>
+</html>
