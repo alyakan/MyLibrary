@@ -1,14 +1,12 @@
 from django.shortcuts import render
-from django.views.generic import TemplateView
-from main.forms import UserForm, UserProfileForm
+from django.views.generic import TemplateView, DetailView
+from main.forms import UserForm
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.generic.edit import CreateView, FormView
-from django.views.generic.edit import DetailView
 from main.models import Library
 from django.core.urlresolvers import reverse_lazy
-from django.contrib.auth.forms import UserCreationForm
 
 
 class PaginateMixin(object):
@@ -52,6 +50,15 @@ class LibraryCreate(CreateView):
     # def create_book(self, name):
     #     lib_done = django.dispatch.Signal(providing_args=["id"])
     #     lib_done.send(sender=self.__class__, id=self.object.id)
+
+
+class LibraryDetail(DetailView):
+    model = Library
+    template = 'main/library-detail.html'
+
+    # def get_context_data(self, **kwargs):
+    #     # Call the base implementation first to get a context
+    #     context = super(LibraryDetail, self).get_context_data(**kwargs)
 
 
 class RegisterView(FormView):
