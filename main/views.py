@@ -4,9 +4,15 @@ from main.forms import UserForm, UserProfileForm
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, FormView
+from django.views.generic.edit import DetailView
 from main.models import Library
 from django.core.urlresolvers import reverse_lazy
+from django.contrib.auth.forms import UserCreationForm
+
+
+class PaginateMixin(object):
+    paginate_by = 5
 
 
 class IndexView(TemplateView):
@@ -48,47 +54,28 @@ class LibraryCreate(CreateView):
     #     lib_done.send(sender=self.__class__, id=self.object.id)
 
 
-def register(request):
-    """
-    Registers a user to the system
+class RegisterView(FormView):
+    form_class = UserForm
+    template_name = 'main/register.html'
+    success_url = '/main/'
 
-    Author: Aly Yakan
+    def get(self, request, *args, **kwargs):
+        form = self.form_class(initial=self.initial)
+        return render(request, self.template_name, {'form': form})
 
-
-    """
-    registered = False
-    if request.method == 'POST':
-        user_form = UserForm(data=request.POST)
-        profile_form = UserProfileForm(data=request.POST)
-
-        if user_form.is_valid() and profile_form.is_valid():
-
-            user = user_form.save()
-
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            user = form.save()
             user.set_password(user.password)
             user.save()
-
-            profile = profile_form.save(commit=False)
-            profile.user = user
-
-            if 'picture' in request.FILES:
-                profile.picture = request.FILES['picture']
-
-            profile.save()
-
             registered = True
-
-        else:
-            print user_form.errors, profile_form.errors
-
-    else:
-        user_form = UserForm()
-        profile_form = UserProfileForm()
-
-    return render(request,
-                  'main/register.html',
-                  {'user_form': user_form,
-                   'profile_form': profile_form, 'registered': registered})
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            user = authenticate(username=username, password=password)
+            login(request, user)
+            return render(request, self.template_name, {'form': form,
+                          'registered': registered})
 
 
 def user_login(request):
