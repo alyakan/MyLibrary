@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.generic.edit import CreateView, FormView
-from main.models import Library
+from main.models import Library, Book
 from django.core.urlresolvers import reverse_lazy
 
 
@@ -37,6 +37,32 @@ class IndexView(TemplateView):
             current_user_id = self.request.user
             try:
                 lib_id = Library.objects.get(owner_id=current_user_id).id
+                context['lib_id'] = lib_id
+                context['lib_slug'] = Library.objects.get(id=lib_id).slug
+            except:
+                lib_id = ""
+            return context
+
+
+class BookCreate(CreateView):
+    model = Book
+    fields = ['name', 'author', 'library']
+    success_url = reverse_lazy('main')
+    template_name = 'main/book_form.html'
+
+    def get_context_data(self, **kwargs):
+        """
+        Gets Context Data Used in main.html Template
+
+        Author: Aly Yakan
+        """
+        context = super(BookCreate, self).get_context_data(**kwargs)
+        if self.request.user.is_authenticated():
+            current_user_id = self.request.user
+            try:
+                lib_id = Library.objects.get(owner_id=current_user_id).id
+                context['library'] = Library.objects.get(
+                    owner_id=current_user_id)
                 context['lib_id'] = lib_id
                 context['lib_slug'] = Library.objects.get(id=lib_id).slug
             except:
