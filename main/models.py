@@ -51,3 +51,28 @@ class Library(models.Model):
         """
         self.slug = slugify(self.name)
         super(Library, self).save(*args, **kwargs)
+
+
+class Book(models.Model):
+    name = models.CharField(max_length=128, unique=True, null=False)
+    author = models.CharField(max_length=128, unique=False)
+    library = models.ForeignKey(Library)
+    slug = models.SlugField(unique=False)
+
+    def get_absolute_url(self):
+        """
+        Gets absolute url of Book-detail template which is used to display
+        information about book entries
+        Author: Aly Yakan
+
+        """
+        return reverse('book-detail', kwargs={'slug': self.slug})
+
+    def save(self, *args, **kwargs):
+        """
+        Automatically creates a slug for each book entry saved
+        Author: Aly Yakan
+
+        """
+        self.slug = slugify(self.name)
+        super(Book, self).save(*args, **kwargs)

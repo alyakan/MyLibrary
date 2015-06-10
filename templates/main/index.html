@@ -8,7 +8,7 @@
 		<h1>Welcome {{ user.username }}</h1>
 		<h4><a href="/main/logout/">Logout</a></h4><br />
 		{% if lib_id %}
-			<h4><a href="/main/mylibrary/{{lib_slug}} ">View My Library</a></h4>
+			<h4><a href="/main/mylibrary/{{lib_slug}}">View My Library</a></h4>
 		{% else %}
 			<h4><a href="/main/library/add">Add Your Library</a></h4>
 		{% endif %}
