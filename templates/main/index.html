@@ -5,7 +5,7 @@
 </head>
 <body>
 	{% if user.is_authenticated %}
-		<h1>Welcome {{ user.username }} + {{lib_slug}}</h1>
+		<h1>Welcome {{ user.username }}</h1>
 		<h4><a href="/main/logout/">Logout</a></h4><br />
 		{% if lib_id %}
 			<h4><a href="/main/mylibrary/{{lib_slug}} ">View My Library</a></h4>
