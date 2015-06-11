@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView, DetailView
-from django.views.generic import ListView
+from django.views.generic import ListView, DeleteView
 from main.forms import UserForm, BookForm
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect, HttpResponse
@@ -82,26 +82,30 @@ class BookListView(PaginateMixin, ListView):
     context_object_name = "books"
 
 
-# def manage_books(request):
-#     BookFormSet = modelformset_factory(Book, form=BookForm)
-#     QuerySet = Library.objects.filter(name='')
-#     if request.method == 'POST':
-#         formset = BookFormSet(request.POST, request.FILES, queryset=QuerySet)
-#         if formset.is_valid():
-#             formset.save()
-#             return HttpResponseRedirect(reverse('book-list'))
-#             pass
-#     else:
-#         formset = BookFormSet(queryset=QuerySet)
-
-#     return render_to_response('manage-books.html',
-#                               {'formset': formset},
-#                               context_instance=RequestContext(request))
+# class BookDelete(DeleteView):
+#     model = Book
+#     success_url = reverse_lazy('book-list')
 
 
-# class ManageBooksFromView(FormView):
-#     from_class = modelformset_factory(Book, form=BookForm)
-#     template_name = 'main/manage_books.html'
+class ManageBooksFormView(FormView):
+    from_class = BookForm
+    template_name = "main/manage_books.html"
+
+    def post(self, request, *args, **kwargs):
+        BookFormSet = modelformset_factory(Book, form=BookForm, extra=0)
+        formset = BookFormSet(request.POST, request.FILES)
+        if formset.is_valid():
+            formset.save()
+            return HttpResponseRedirect(reverse('library-detail',
+                                                args=(self.kwargs['slug'],)))
+            pass
+
+    def get(self, request, *args, **kwargs):
+        BookFormSet = modelformset_factory(Book, form=BookForm, extra=0)
+        formset = BookFormSet()
+        return render_to_response('main/manage_books.html',
+                                  {'formset': formset},
+                                  context_instance=RequestContext(request))
 
 
 class LibraryCreate(CreateView):

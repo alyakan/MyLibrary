@@ -3,12 +3,12 @@
 	<a href="/main/">Go Back Home</a>
 	{% block content %}
 	    <h2>{{ object.name }}</h2>
-	    <ul>
-	        <h3>Library Name: {{ object.name }}</h3>
-	    </ul>
-	    <h4><a href="/main/mylibrary/{{object.slug}}/book/add">Add a new book</a></h4>
-	    <a href="update"> update</a> <br><br>
-	    <a href="delete">Delete This Library</a>
+	    {% if user.id == object.id %}
+	    	<h4><a href="/main/mylibrary/{{object.slug}}/book/add">Add a new book</a></h4>
+	    	<a href="{% url "manage-books" slug=object.slug %}">Edit Books</a>
+	    	<a href="update"> update</a> <br><br>
+	    	<a href="delete">Delete This Library</a>
+	    {% endif %}
 	{% endblock %}
 	<br><br>
 	{% block content2 %}

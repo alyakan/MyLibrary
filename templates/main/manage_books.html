@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Books Form Set</title>
+</head>
+<body>
+	<form method="post" action=""> 
+
+	    {{ formset.management_form }}
+	    <table>
+
+	        {% for form in formset %}
+	        {% csrf_token %}
+	        {{ form }}
+	        {% endfor %}
+	    </table>
+	    <input type="submit" name="submit" value="Submit Changes" />
+	</form>
+</body>
+</html>
