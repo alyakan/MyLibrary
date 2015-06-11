@@ -1,8 +1,9 @@
 from django.conf.urls import patterns, url
 from main.views import IndexView, LibraryCreate, RegisterView
+from main.views import NotificationCreate
 from main.views import LibraryDetailView, BookCreate, LibraryListView
 from main.views import BookListView, ManageBooksFormView, BookDelete
-from main.views import BookDetailView
+from main.views import BookDetailView, NotificationListView
 from main import views
 
 urlpatterns = patterns('',
@@ -28,4 +29,9 @@ urlpatterns = patterns('',
                        url(r'^mylibrary/(?P<lslug>[-\w]+)/book/(?P<slug>[-\w]+)/$',
                            BookDetailView.as_view(), name="book-detail"),
                        url(r'^mylibrary/(?P<lslug>[-\w]+)/book/(?P<slug>[-\w]+)/delete/$',
-                           BookDelete.as_view(), name='book-delete'),)
+                           BookDelete.as_view(), name='book-delete'),
+                       url(r'mylibrary/notification/$',
+                           BookCreate.as_view(), name='notification'),
+                       url(r'^notification-list/$',
+                           NotificationListView.as_view(),
+                           name='notification-list'),)

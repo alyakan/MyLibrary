@@ -1,0 +1,24 @@
+
+<!DOCTYPE html>
+<html>
+	{% block content %}
+	    <h2>Notifications</h2>
+	    <a href="/main/">Go Back Home</a>
+
+	    {% if object_list %}
+	        {% for notification in object_list %}
+	            <a href="{% url "book-detail" notification.notification.book.library.slug notification.notification.book.slug %}"><li>{{ notification.notification.verb }}</li></a>
+	        {% endfor %}
+
+	    {% else %}
+	    	<h4>No New Notifications</h4><br><br>
+	    {% endif %}
+	    {% if read_notifications %}
+	    <h4>Old Notifications</h4>
+	    	{% for notification in read_notifications %}
+	            <a href="{% url "book-detail" notification.notification.book.library.slug notification.notification.book.slug %}"><li>{{ notification.notification.verb }}</li></a>
+	        {% endfor %}
+	    {% endif %}
+	{% endblock %}
+
+</html>
