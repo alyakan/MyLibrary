@@ -15,7 +15,7 @@
 	    <h2>Books</h2>
 	    <ul>
 	        {% for book in book_list %}
-	            <a href="{% url "library-detail" book.slug %}"><li>{{ book.name }}</li></a>
+	            <a href="{% url "book-detail" object.slug book.slug %}"><li>{{ book.name }}</li></a>
 	        {% endfor %}
 	    </ul>
 	{% endblock %}

@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, url
 from main.views import IndexView, LibraryCreate, RegisterView
 from main.views import LibraryDetailView, BookCreate, LibraryListView
-from main.views import BookListView, ManageBooksFormView
+from main.views import BookListView, ManageBooksFormView, BookDelete
+from main.views import BookDetailView
 from main import views
 
 urlpatterns = patterns('',
@@ -23,4 +24,8 @@ urlpatterns = patterns('',
                            name='book-list'),
                        url(r'^mylibrary/(?P<slug>[-\w]+)/manage-books/',
                            ManageBooksFormView.as_view(),
-                           name='manage-books'),)
+                           name='manage-books'),
+                       url(r'^mylibrary/(?P<lslug>[-\w]+)/book/(?P<slug>[-\w]+)/$',
+                           BookDetailView.as_view(), name="book-detail"),
+                       url(r'^mylibrary/(?P<lslug>[-\w]+)/book/(?P<slug>[-\w]+)/delete/$',
+                           BookDelete.as_view(), name='book-delete'),)
