@@ -1,6 +1,7 @@
 
 <!DOCTYPE html>
 <html>
+<h4><a href="{% url "login" %}?next={{request.path}}">Login</a></h4>
 	{% block content %}
 	    <h2>Libraries</h2>
 	    <a href="/main/">Go Back Home</a>
