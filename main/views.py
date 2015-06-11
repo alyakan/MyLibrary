@@ -7,11 +7,16 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.generic.edit import CreateView, FormView
 from main.models import Library, Book
+from main.models import Notification, NotificationCenter
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.forms.models import modelformset_factory
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.db.models.signals import post_save
+import django.dispatch
+from django.dispatch import receiver
+from django.contrib.auth.models import User
 
 
 class PaginateMixin(object):
@@ -40,6 +45,7 @@ class IndexView(TemplateView):
         context = super(IndexView, self).get_context_data(**kwargs)
         if self.request.user.is_authenticated():
             current_user_id = self.request.user
+            context['count'] = NotificationCenter.objects.filter(receiver_id=current_user_id, read=0).count()
             try:
                 lib_id = Library.objects.get(owner_id=current_user_id).id
                 context['lib_id'] = lib_id
@@ -75,10 +81,15 @@ class BookCreate(CreateView):
                 lib_id = ""
             return context
 
+    def send_notification(self, name):
+        book_created = django.dispatch.Signal(providing_args=["id", "book_id"])
+        book_created.send(sender=self.__class__, id=self.request.user.id,
+                          book_id=self.object.id)
+
 
 class BookListView(PaginateMixin, ListView):
     model = Book
-    template_name = "main/library_list.html"
+    template_name = "main/book_list.html"
     context_object_name = "books"
 
 
@@ -105,6 +116,64 @@ class BookDelete(DeleteView):
     def get_success_url(self):
         lslug = self.kwargs['lslug']
         return reverse('library-detail', args=(lslug,))
+
+
+class NotificationCreate(CreateView):
+    model = Notification
+    success_url = reverse_lazy('index')
+    template_name = 'main/notification_form.html'
+
+    @receiver(post_save, sender=Book)
+    def my_handler(sender, instance, **kwargs):
+        library = Library.objects.get(id=instance.library_id)
+        actor = User.objects.get(id=library.owner_id)
+        book_name = Book.objects.get(id=instance.id).name
+        receivers = User.objects.exclude(id=actor.id)
+        if kwargs.get('created', False):
+            Notification.objects.get_or_create(verb=(library.name +
+                                                     " has added a new book: " +
+                                                     book_name),
+                                               actor_id=actor.id,
+                                               library_id=library.id,
+                                               book_id=instance.id)
+        pass
+        notification = Notification.objects.get(verb=(library.name +
+                                                      " has added a new book: " +
+                                                      book_name),
+                                                actor_id=actor.id,
+                                                library_id=library.id,
+                                                book_id=instance.id)
+        for receiver in receivers:
+            NotificationCenter.objects.get_or_create(receiver_id=receiver.id, notification_id=notification.id)
+
+
+class NotificationListView(ListView):
+    model = NotificationCenter
+    template_name = "main/notification_list.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Gets Context Data Used in main.html Template
+
+        Author: Aly Yakan
+        """
+        context = super(NotificationListView, self).get_context_data(**kwargs)
+        if self.request.user.is_authenticated():
+            current_user_id = self.request.user
+            try:
+                object_list = NotificationCenter.objects.filter(receiver_id=current_user_id, read=0)
+                context['object_list'] = object_list
+                context['read_notifications'] = NotificationCenter.objects.filter(receiver_id=current_user_id)
+                for obj in object_list:
+                    obj.read = 1
+                    obj.save()
+                if object_list:
+                    context['count'] = object_list.count()
+                else:
+                    context['count'] = 0
+            except:
+                lib_id = ""
+            return context
 
 
 class ManageBooksFormView(FormView):

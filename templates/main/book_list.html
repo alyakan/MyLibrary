@@ -6,7 +6,7 @@
 	    <a href="/main/">Go Back Home</a>
 	    <ul>
 	        {% for book in object_list %}
-	            <a href="{% url "book-detail" book.slug %}"><li>{{ book.name }}</li></a>
+	            <a href="{% url "book-detail" book.library.slug book.slug %}"><li>{{ book.name }}</li></a>
 	        {% endfor %}
 	    </ul>
 	{% endblock %}

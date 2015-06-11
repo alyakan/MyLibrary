@@ -54,6 +54,12 @@ class Library(models.Model):
 
 
 class Book(models.Model):
+    """
+    Represents a single Book
+
+    Author: Aly Yakan
+
+    """
     name = models.CharField(max_length=128, unique=True, null=False)
     author = models.CharField(max_length=128, unique=False)
     library = models.ForeignKey(Library)
@@ -76,3 +82,28 @@ class Book(models.Model):
         """
         self.slug = slugify(self.name)
         super(Book, self).save(*args, **kwargs)
+
+
+class Notification(models.Model):
+    """
+    Represents a single Notification
+
+    Author: Aly Yakan
+
+    """
+    verb = models.TextField()
+    actor = models.ForeignKey(User)
+    library = models.ForeignKey(Library)
+    book = models.ForeignKey(Book)
+
+
+class NotificationCenter(models.Model):
+    """
+    Represents a single Notification
+
+    Author: Aly Yakan
+
+    """
+    read = models.IntegerField(default=0)
+    receiver = models.ForeignKey(User)
+    notification = models.ForeignKey(Notification)

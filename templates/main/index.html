@@ -10,6 +10,7 @@
 	{% if user.is_authenticated %}
 		<h1>Welcome {{ user.username }}</h1>
 		<h4><a href="/main/logout/">Logout</a></h4><br />
+		<h4><a href="{% url "notification-list" %}">{{ count }} new notifications</a></h4>
 		{% if lib_id %}
 			<h4><a href="/main/mylibrary/{{lib_slug}}">View My Library</a></h4>
 		{% else %}
