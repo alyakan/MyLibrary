@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+	{% block content %}
+	    <h2>{{object.name}}</h2>
+	    <ul>
+	        <h3>Book Name: {{ object.name }}</h3>
+	        <h3>Author: {{ object.author }}</h3>
+	    </ul>
+	    <a href="/myapp/{{ object.slug }}/update">Update Info</a> <br><br>
+	    <a href="{% url "book-delete" lslug=library.slug slug=object.slug %}">Delete This Book</a>
+	{% endblock %}
+</html>

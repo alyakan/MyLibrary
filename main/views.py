@@ -82,9 +82,29 @@ class BookListView(PaginateMixin, ListView):
     context_object_name = "books"
 
 
-# class BookDelete(DeleteView):
-#     model = Book
-#     success_url = reverse_lazy('book-list')
+class BookDetailView(DetailView):
+    model = Book
+    template_name = "main/book_detail.html"
+
+    def get_context_data(self, **kwargs):
+        """
+        Gets Context Data Used in main.html Template
+
+        Author: Aly Yakan
+        """
+        context = super(BookDetailView, self).get_context_data(**kwargs)
+        slug = self.kwargs['lslug']
+        library = Library.objects.get(slug=slug)
+        context['library'] = library
+        return context
+
+
+class BookDelete(DeleteView):
+    model = Book
+
+    def get_success_url(self):
+        lslug = self.kwargs['lslug']
+        return reverse('library-detail', args=(lslug,))
 
 
 class ManageBooksFormView(FormView):
