@@ -76,6 +76,12 @@ class BookCreate(CreateView):
             return context
 
 
+class BookListView(PaginateMixin, ListView):
+    model = Book
+    template_name = "main/library_list.html"
+    context_object_name = "books"
+
+
 # def manage_books(request):
 #     BookFormSet = modelformset_factory(Book, form=BookForm)
 #     QuerySet = Library.objects.filter(name='')

@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, url
 from main.views import IndexView, LibraryCreate, RegisterView
 from main.views import LibraryDetailView, BookCreate, LibraryListView
+from main.views import BookListView
 from main import views
 
 urlpatterns = patterns('',
@@ -17,4 +18,6 @@ urlpatterns = patterns('',
                        url(r'^mylibrary/(?P<slug>[-\w]+)/$',
                            LibraryDetailView.as_view(), name="library-detail"),
                        url(r'^library-list/$', LibraryListView.as_view(),
-                           name='library-list'),)
+                           name='library-list'),
+                       url(r'^book-list/$', BookListView.as_view(),
+                           name='book-list'),)

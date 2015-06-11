@@ -5,6 +5,8 @@
 </head>
 <body>
 	<h3><a href="{% url "library-list" %}">Libraries</a></h3>
+	<br>
+	<h3><a href="{% url "book-list" %}">Books</a></h3>
 	{% if user.is_authenticated %}
 		<h1>Welcome {{ user.username }}</h1>
 		<h4><a href="/main/logout/">Logout</a></h4><br />
