@@ -1,12 +1,17 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView, DetailView
+from django.views.generic import ListView
 from main.forms import UserForm, BookForm
 from django.contrib.auth import authenticate, login, logout
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.views.generic.edit import CreateView, FormView
 from main.models import Library, Book
-from django.core.urlresolvers import reverse_lazy
+from django.core.urlresolvers import reverse_lazy, reverse
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.forms.models import modelformset_factory
+from django.shortcuts import render_to_response
+from django.template import RequestContext
 
 
 class PaginateMixin(object):
@@ -71,6 +76,28 @@ class BookCreate(CreateView):
             return context
 
 
+# def manage_books(request):
+#     BookFormSet = modelformset_factory(Book, form=BookForm)
+#     QuerySet = Library.objects.filter(name='')
+#     if request.method == 'POST':
+#         formset = BookFormSet(request.POST, request.FILES, queryset=QuerySet)
+#         if formset.is_valid():
+#             formset.save()
+#             return HttpResponseRedirect(reverse('book-list'))
+#             pass
+#     else:
+#         formset = BookFormSet(queryset=QuerySet)
+
+#     return render_to_response('manage-books.html',
+#                               {'formset': formset},
+#                               context_instance=RequestContext(request))
+
+
+# class ManageBooksFromView(FormView):
+#     from_class = modelformset_factory(Book, form=BookForm)
+#     template_name = 'main/manage_books.html'
+
+
 class LibraryCreate(CreateView):
     model = Library
     fields = ['name', 'location', 'owner']
@@ -82,13 +109,38 @@ class LibraryCreate(CreateView):
     #     lib_done.send(sender=self.__class__, id=self.object.id)
 
 
-class LibraryDetail(DetailView):
+class LibraryDetailView(PaginateMixin, DetailView):
     model = Library
     template = 'main/library-detail.html'
 
-    # def get_context_data(self, **kwargs):
-    #     # Call the base implementation first to get a context
-    #     context = super(LibraryDetail, self).get_context_data(**kwargs)
+    def get_context_data(self, **kwargs):
+        """
+        Gets Context Data Used in library_list.html Template
+
+        Author: Aly Yakan
+        """
+        context = super(LibraryDetailView, self).get_context_data(**kwargs)
+        lib_slug = self.kwargs['slug']
+        library = Library.objects.get(slug=lib_slug)
+        context['library'] = library
+        book_list = Book.objects.filter(library_id=library.id)
+        paginator = Paginator(book_list, 2)
+        page = self.request.GET.get('page')
+        try:
+            books = paginator.page(page)
+        except PageNotAnInteger:
+            books = paginator.page(1)
+        except EmptyPage:
+            books = paginator.page(paginator.num_pages)
+        context['book_list'] = books
+        context['page_obj'] = paginator.page(int(page) if page else 1)
+        return context
+
+
+class LibraryListView(PaginateMixin, ListView):
+    model = Library
+    template_name = "main/library_list.html"
+    context_object_name = "libraries"
 
 
 class RegisterView(FormView):

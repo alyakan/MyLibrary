@@ -9,7 +9,9 @@
 
         <form id="bookform" method="post">
             {% csrf_token %}
+            {{ form.name.label_tag }}
             {{ form.name }}
+            {{ form.author.label_tag }}
             {{ form.author }}
             <input hidden id="library" size="20" type="text" name="library" value={{ library.id }}  >
             <input type="submit" name="submit" value="Create Book" />

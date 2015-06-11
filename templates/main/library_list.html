@@ -1,21 +1,12 @@
+
 <!DOCTYPE html>
 <html>
-	<a href="/main/">Go Back Home</a>
 	{% block content %}
-	    <h2>{{ object.name }}</h2>
+	    <h2>Libraries</h2>
+	    <a href="/main/">Go Back Home</a>
 	    <ul>
-	        <h3>Library Name: {{ object.name }}</h3>
-	    </ul>
-	    <h4><a href="/main/mylibrary/{{object.slug}}/book/add">Add a new book</a></h4>
-	    <a href="update"> update</a> <br><br>
-	    <a href="delete">Delete This Library</a>
-	{% endblock %}
-	<br><br>
-	{% block content2 %}
-	    <h2>Books</h2>
-	    <ul>
-	        {% for book in book_list %}
-	            <a href="{% url "library-detail" book.slug %}"><li>{{ book.name }}</li></a>
+	        {% for library in object_list %}
+	            <a href="{% url "library-detail" library.slug %}"><li>{{ library.name }}</li></a>
 	        {% endfor %}
 	    </ul>
 	{% endblock %}
