@@ -17,6 +17,11 @@ from django.db.models.signals import post_save
 import django.dispatch
 from django.dispatch import receiver
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import AuthenticationForm
+from django.conf import settings
+from django.contrib.auth import login as auth_login, logout as auth_logout
+from django.utils.decorators import method_decorator
+from django.views.decorators.debug import sensitive_post_parameters
 
 
 class PaginateMixin(object):
@@ -266,28 +271,50 @@ class RegisterView(FormView):
                           'registered': registered})
 
 
-def user_login(request):
+# def user_login(request):
 
-    if request.method == 'POST':
+#     if request.method == 'POST':
 
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+#         username = request.POST.get('username')
+#         password = request.POST.get('password')
 
-        user = authenticate(username=username, password=password)
+#         user = authenticate(username=username, password=password)
 
-        if user:
+#         if user:
 
-            if user.is_active:
-                login(request, user)
-                return HttpResponseRedirect('/main/')
-            else:
-                return HttpResponse("Your Rango account is disabled.")
-        else:
-            print "Invalid login details: {0}, {1}".format(username, password)
-            return HttpResponse("Invalid login details supplied.")
+#             if user.is_active:
+#                 login(request, user)
+#                 return HttpResponseRedirect('/main/')
+#             else:
+#                 return HttpResponse("Your Rango account is disabled.")
+#         else:
+#             print "Invalid login details: {0}, {1}".format(username, password)
+#             return HttpResponse("Invalid login details supplied.")
 
-    else:
-        return render(request, 'main/login.html', {})
+#     else:
+#         return render(request, 'main/login.html', {})
+
+
+class LoginView(FormView):
+    form_class = AuthenticationForm
+    template_name = 'main/login.html'
+
+    def form_valid(self, form):
+        redirect_to = self.request.GET.get('next', '')
+        auth_login(self.request, form.get_user())
+        if self.request.session.test_cookie_worked():
+            self.request.session.delete_test_cookie()
+        l = len(redirect_to) - 1
+        # return HttpResponseRedirect("/main/library_list/")
+        return HttpResponse("redirect_to")
+
+    def form_invalid(self, form):
+        return self.render_to_response(self.get_context_data(form=form))
+
+    @method_decorator(sensitive_post_parameters('password'))
+    def dispatch(self, request, *args, **kwargs):
+        request.session.set_test_cookie()
+        return super(LoginView, self).dispatch(request, *args, **kwargs)
 
 
 @login_required
