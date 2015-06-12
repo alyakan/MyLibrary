@@ -1,5 +1,5 @@
 from django.test import TestCase, Client
-from main.models import User, Library, Book
+from main.models import User, Library, Book, Notification, NotificationCenter
 from django.core.urlresolvers import reverse
 
 
@@ -265,3 +265,51 @@ class BookTestCase(TestCase):
         self.assertEqual(
             [Book.pk for Book in response.context['object_list']],
             [1, 2])
+
+
+class NotificationTestCase(TestCase):
+
+    def Setup(self):
+        self.client = Client()
+
+    def test_ensure_notification_created_after_book(self):
+        """
+        Ensures a notification is created after a book creation
+
+        Author: Aly Yakan
+        """
+        user = User.objects.create_user(username='johndoe',
+                                        password='123456')
+        lib = Library.objects.create(name='library',
+                                     location='here',
+                                     owner=user)
+        response = self.client.post(
+            reverse('book-add', kwargs={'slug': lib.slug}),
+            {'name': u'My Book',
+             'author': u'Me',
+             'library': lib.id})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Notification.objects.all().count(), 1)
+
+    def test_ensure_notifications_sent_to_users_after_book(self):
+        """
+        Ensures a notification is sent to all interested parties
+
+        Author: Aly Yakan
+        """
+        user = User.objects.create_user(username='johndoe',
+                                        password='123456')
+        User.objects.create_user(username='johnnydoe',
+                                 password='123456')
+        User.objects.create_user(username='jordandoe',
+                                 password='123456')
+        lib = Library.objects.create(name='library',
+                                     location='here',
+                                     owner=user)
+        response = self.client.post(
+            reverse('book-add', kwargs={'slug': lib.slug}),
+            {'name': u'My Book',
+             'author': u'Me',
+             'library': lib.id})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(NotificationCenter.objects.all().count(), 2)
