@@ -3,9 +3,9 @@ from django.views.generic import TemplateView, DetailView
 from django.views.generic import ListView, DeleteView
 from main.forms import UserForm, BookForm
 from django.contrib.auth import authenticate, login, logout
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from django.views.generic.edit import CreateView, FormView
+from django.views.generic.edit import CreateView, FormView, View
 from main.models import Library, Book
 from main.models import Notification, NotificationCenter
 from django.core.urlresolvers import reverse_lazy, reverse
@@ -271,42 +271,18 @@ class RegisterView(FormView):
                           'registered': registered})
 
 
-# def user_login(request):
-
-#     if request.method == 'POST':
-
-#         username = request.POST.get('username')
-#         password = request.POST.get('password')
-
-#         user = authenticate(username=username, password=password)
-
-#         if user:
-
-#             if user.is_active:
-#                 login(request, user)
-#                 return HttpResponseRedirect('/main/')
-#             else:
-#                 return HttpResponse("Your Rango account is disabled.")
-#         else:
-#             print "Invalid login details: {0}, {1}".format(username, password)
-#             return HttpResponse("Invalid login details supplied.")
-
-#     else:
-#         return render(request, 'main/login.html', {})
-
-
 class LoginView(FormView):
     form_class = AuthenticationForm
     template_name = 'main/login.html'
 
     def form_valid(self, form):
-        redirect_to = self.request.GET.get('next', '')
+        # redirect_to = self.request.POST.get('next', '')
         auth_login(self.request, form.get_user())
         if self.request.session.test_cookie_worked():
             self.request.session.delete_test_cookie()
-        l = len(redirect_to) - 1
+        # l = len(redirect_to) - 1
         # return HttpResponseRedirect("/main/library_list/")
-        return HttpResponse("redirect_to")
+        return HttpResponseRedirect(reverse('index'))
 
     def form_invalid(self, form):
         return self.render_to_response(self.get_context_data(form=form))
@@ -317,10 +293,14 @@ class LoginView(FormView):
         return super(LoginView, self).dispatch(request, *args, **kwargs)
 
 
-@login_required
-def user_logout(request):
-    # Since we know the user is logged in, we can now just log them out.
-    logout(request)
+class LogoutView(View):
+    def get(self, request, *args, **kwargs):
+        auth_logout(request)
+        return HttpResponseRedirect(reverse('index'))
+# @login_required
+# def user_logout(request):
+#     # Since we know the user is logged in, we can now just log them out.
+#     logout(request)
 
-    # Take the user back to the homepage.
-    return HttpResponseRedirect('/main/')
+#     # Take the user back to the homepage.
+#     return HttpResponseRedirect('/main/')
