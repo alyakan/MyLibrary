@@ -267,8 +267,9 @@ class RegisterView(FormView):
             password = request.POST.get('password')
             user = authenticate(username=username, password=password)
             login(request, user)
-            return render(request, self.template_name, {'form': form,
-                          'registered': registered})
+        registered = False
+        return render(request, self.template_name, {'form': form,
+                      'registered': registered})
 
 
 class LoginView(FormView):
