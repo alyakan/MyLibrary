@@ -8,6 +8,7 @@
         <h1>Add a Book</h1>
 
         <form id="bookform" method="post">
+            {{ form.errors }}
             {% csrf_token %}
             {{ form.name.label_tag }}
             {{ form.name }}

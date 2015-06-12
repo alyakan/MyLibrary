@@ -2,9 +2,8 @@ from django.shortcuts import render
 from django.views.generic import TemplateView, DetailView
 from django.views.generic import ListView, DeleteView
 from main.forms import UserForm, BookForm
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login
 from django.http import HttpResponseRedirect
-from django.contrib.auth.decorators import login_required
 from django.views.generic.edit import CreateView, FormView, View
 from main.models import Library, Book
 from main.models import Notification, NotificationCenter
@@ -18,7 +17,6 @@ import django.dispatch
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
-from django.conf import settings
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
@@ -61,10 +59,19 @@ class IndexView(TemplateView):
 
 
 class BookCreate(CreateView):
+    """
+    Creates a single book.
+
+    Author: Aly Yakan
+
+    **Template:**
+
+    :template:`main/book_form.html`
+
+    """
     model = Book
     # fields = ['name', 'author', 'library']
     form_class = BookForm
-    success_url = reverse_lazy('index')
     template_name = 'main/book_form.html'
 
     def get_context_data(self, **kwargs):
@@ -86,6 +93,16 @@ class BookCreate(CreateView):
                 lib_id = ""
             return context
 
+    def get_success_url(self):
+        """
+        Overrides get_success_url so i can provide the slug
+
+        Author: Aly Yakan
+
+        """
+        lslug = self.kwargs['slug']
+        return reverse('library-detail', args=(lslug,))
+
     def send_notification(self, name):
         book_created = django.dispatch.Signal(providing_args=["id", "book_id"])
         book_created.send(sender=self.__class__, id=self.request.user.id,
@@ -93,12 +110,32 @@ class BookCreate(CreateView):
 
 
 class BookListView(PaginateMixin, ListView):
+    """
+    Lists all books.
+
+    Author: Aly Yakan
+
+    **Template:**
+
+    :template:`main/book_list.html`
+
+    """
     model = Book
     template_name = "main/book_list.html"
     context_object_name = "books"
 
 
 class BookDetailView(DetailView):
+    """
+    Views a single book's detials.
+
+    Author: Aly Yakan
+
+    **Template:**
+
+    :template:`main/book_detail.html`
+
+    """
     model = Book
     template_name = "main/book_detail.html"
 
@@ -116,43 +153,91 @@ class BookDetailView(DetailView):
 
 
 class BookDelete(DeleteView):
+    """
+    Deletes a single book.
+
+    Author: Aly Yakan
+
+    **Template:**
+
+    :template:`main/book_delete.html`
+
+    """
     model = Book
 
     def get_success_url(self):
+        """
+        Overrides get_success_url so i can provide the slug
+
+        Author: Aly Yakan
+
+        """
         lslug = self.kwargs['lslug']
         return reverse('library-detail', args=(lslug,))
 
 
 class NotificationCreate(CreateView):
+    """
+    Creates and sends notifications to users automatically after a book
+    is created.
+
+    Author: Aly Yakan
+
+    **Template:**
+
+    :template:`main/notification_form.html`
+
+    """
     model = Notification
     success_url = reverse_lazy('index')
     template_name = 'main/notification_form.html'
 
     @receiver(post_save, sender=Book)
     def my_handler(sender, instance, **kwargs):
+        """
+        Handles sending notifications to users after receiving a signals
+        of book creation.
+
+        Author: Aly Yakan
+
+        """
         library = Library.objects.get(id=instance.library_id)
         actor = User.objects.get(id=library.owner_id)
         book_name = Book.objects.get(id=instance.id).name
         receivers = User.objects.exclude(id=actor.id)
         if kwargs.get('created', False):
-            Notification.objects.get_or_create(verb=(library.name +
-                                                     " has added a new book: " +
-                                                     book_name),
-                                               actor_id=actor.id,
-                                               library_id=library.id,
-                                               book_id=instance.id)
+            Notification.objects.get_or_create(
+                verb=(library.name +
+                      " has added a new book: " +
+                      book_name),
+                actor_id=actor.id,
+                library_id=library.id,
+                book_id=instance.id)
         pass
-        notification = Notification.objects.get(verb=(library.name +
-                                                      " has added a new book: " +
-                                                      book_name),
-                                                actor_id=actor.id,
-                                                library_id=library.id,
-                                                book_id=instance.id)
-        for receiver in receivers:
-            NotificationCenter.objects.get_or_create(receiver_id=receiver.id, notification_id=notification.id)
+        notification = Notification.objects.get(
+            verb=(library.name +
+                  " has added a new book: " +
+                  book_name),
+            actor_id=actor.id,
+            library_id=library.id,
+            book_id=instance.id)
+        for rec in receivers:
+            NotificationCenter.objects.get_or_create(
+                receiver_id=rec.id,
+                notification_id=notification.id)
 
 
 class NotificationListView(ListView):
+    """
+    Lists all notifications of a user.
+
+    Author: Aly Yakan
+
+    **Template:**
+
+    :template:`main/notification_list.html`
+
+    """
     model = NotificationCenter
     template_name = "main/notification_list.html"
 
@@ -166,9 +251,13 @@ class NotificationListView(ListView):
         if self.request.user.is_authenticated():
             current_user_id = self.request.user
             try:
-                object_list = NotificationCenter.objects.filter(receiver_id=current_user_id, read=0)
+                object_list = NotificationCenter.objects.filter(
+                    receiver_id=current_user_id,
+                    read=0)
                 context['object_list'] = object_list
-                context['read_notifications'] = NotificationCenter.objects.filter(receiver_id=current_user_id)
+                var = NotificationCenter.objects
+                context['read_notifications'] = var.filter(
+                    receiver_id=current_user_id, read=1)
                 for obj in object_list:
                     obj.read = 1
                     obj.save()
@@ -182,10 +271,26 @@ class NotificationListView(ListView):
 
 
 class ManageBooksFormView(FormView):
+    """
+    Edits all books of a certain library.
+
+    Author: Aly Yakan
+
+    **Template:**
+
+    :template:`main/manage_books.html`
+
+    """
     from_class = BookForm
     template_name = "main/manage_books.html"
 
     def post(self, request, *args, **kwargs):
+        """
+        Handles posting of the editing formset.
+
+        Author: Aly Yakan
+
+        """
         BookFormSet = modelformset_factory(Book, form=BookForm, extra=0)
         formset = BookFormSet(request.POST, request.FILES)
         if formset.is_valid():
@@ -195,6 +300,12 @@ class ManageBooksFormView(FormView):
             pass
 
     def get(self, request, *args, **kwargs):
+        """
+        Handles retrieval of the editing formset.
+
+        Author: Aly Yakan
+
+        """
         BookFormSet = modelformset_factory(Book, form=BookForm, extra=0)
         formset = BookFormSet()
         return render_to_response('main/manage_books.html',
@@ -203,17 +314,33 @@ class ManageBooksFormView(FormView):
 
 
 class LibraryCreate(CreateView):
+    """
+    Creates a single library.
+
+    Author: Aly Yakan
+
+    **Template:**
+
+    :template:`main/library_form.html`
+
+    """
     model = Library
     fields = ['name', 'location', 'owner']
     success_url = reverse_lazy('index')
     template_name = 'main/library_form.html'
 
-    # def create_book(self, name):
-    #     lib_done = django.dispatch.Signal(providing_args=["id"])
-    #     lib_done.send(sender=self.__class__, id=self.object.id)
-
 
 class LibraryDetailView(PaginateMixin, DetailView):
+    """
+    Views a single library's detials.
+
+    Author: Aly Yakan
+
+    **Template:**
+
+    :template:`main/library_detail.html`
+
+    """
     model = Library
     template = 'main/library-detail.html'
 
@@ -242,12 +369,32 @@ class LibraryDetailView(PaginateMixin, DetailView):
 
 
 class LibraryListView(PaginateMixin, ListView):
+    """
+    Lists all libraries.
+
+    Author: Aly Yakan
+
+    **Template:**
+
+    :template:`main/library_list.html`
+
+    """
     model = Library
     template_name = "main/library_list.html"
     context_object_name = "libraries"
 
 
 class RegisterView(FormView):
+    """
+    Registers a user.
+
+    Author: Aly Yakan
+
+    **Template:**
+
+    :template:`main/register.html`
+
+    """
     form_class = UserForm
     template_name = 'main/register.html'
     success_url = '/main/'
@@ -273,6 +420,16 @@ class RegisterView(FormView):
 
 
 class LoginView(FormView):
+    """
+    Logins a user into the system.
+
+    Author: Aly Yakan
+
+    **Template:**
+
+    :template:`main/book_list.html`
+
+    """
     form_class = AuthenticationForm
     template_name = 'main/login.html'
 
@@ -295,13 +452,16 @@ class LoginView(FormView):
 
 
 class LogoutView(View):
+    """
+    Logouts the user out of a system.
+
+    Author: Aly Yakan
+
+    **Template:**
+
+    :template:`main/book_list.html`
+
+    """
     def get(self, request, *args, **kwargs):
         auth_logout(request)
         return HttpResponseRedirect(reverse('index'))
-# @login_required
-# def user_logout(request):
-#     # Since we know the user is logged in, we can now just log them out.
-#     logout(request)
-
-#     # Take the user back to the homepage.
-#     return HttpResponseRedirect('/main/')
