@@ -294,14 +294,15 @@ class LoginView(FormView):
         return super(LoginView, self).dispatch(request, *args, **kwargs)
 
 
-class LogoutView(View):
-    def get(self, request, *args, **kwargs):
-        auth_logout(request)
-        return HttpResponseRedirect(reverse('index'))
-# @login_required
-# def user_logout(request):
-#     # Since we know the user is logged in, we can now just log them out.
-#     logout(request)
+# class LogoutView(View):
+#     @login_required
+#     def get(self, request, *args, **kwargs):
+#         auth_logout(request)
+#         return HttpResponseRedirect(reverse('index'))
+@login_required
+def user_logout(request):
+    # Since we know the user is logged in, we can now just log them out.
+    logout(request)
 
-#     # Take the user back to the homepage.
-#     return HttpResponseRedirect('/main/')
+    # Take the user back to the homepage.
+    return HttpResponseRedirect('/main/')

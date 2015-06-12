@@ -64,3 +64,17 @@ class UserTestCase(TestCase):
             reverse('login'),
             {'username': u'johndoe', 'password': '4567'})
         self.assertEqual(response.status_code, 200)
+        # self.assertTrue(user_logged_in)
+        response = self.client.get(reverse('logout'))
+        self.assertEqual(response.status_code, 302)
+        # self.assertTrue(user_logged_out)
+
+    def test_ensure_logout_when_logged_in(self):
+        User.objects.create_user(username='johnnydoe',
+                                 password='123456')
+        response = self.client.post(
+            reverse('login'),
+            {'username': u'johndoe', 'password': '4567'})
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse('logout'))
+        # self.assertEqual(response.status_code, 302)

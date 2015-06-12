@@ -1,16 +1,17 @@
 from django.conf.urls import patterns, url
 from main.views import IndexView, LibraryCreate, RegisterView
-from main.views import LoginView, LogoutView
+from main.views import LoginView
 from main.views import LibraryDetailView, BookCreate, LibraryListView
 from main.views import BookListView, ManageBooksFormView, BookDelete
 from main.views import BookDetailView, NotificationListView
+from main import views
 
 urlpatterns = patterns('',
                        url(r'^$', IndexView.as_view(), name='index'),
                        url(r'^register/$', RegisterView.as_view(),
                            name='register'),
                        url(r'^login/$', LoginView.as_view(), name='login'),
-                       url(r'^logout/$', LogoutView.as_view(), name='logout'),
+                       url(r'^logout/$', views.user_logout, name='logout'),
                        url(r'library/add/$', LibraryCreate.as_view(),
                            name='library-add'),
                        url(r'mylibrary/(?P<slug>[-\w]+)/book/add/$',
