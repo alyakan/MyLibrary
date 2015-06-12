@@ -1,5 +1,5 @@
 from django.test import TestCase, Client
-from main.models import User, Library
+from main.models import User, Library, Book
 from django.core.urlresolvers import reverse
 
 
@@ -115,7 +115,7 @@ class LibraryTestCase(TestCase):
         self.assertEqual(Library.objects.all().count(), 0)
 
     def test_list_view_not_signed_in(self):
-    	"""
+        """
         Ensures a guest can browse libraries from
         libraries' list view
 
@@ -145,7 +145,7 @@ class LibraryTestCase(TestCase):
             [1, 2])
 
     def test_library_detailed_view_not_signed_in(self):
-    	"""
+        """
         Ensures a guest can access a library's detailed view
 
         Author: Aly Yakan
@@ -161,3 +161,107 @@ class LibraryTestCase(TestCase):
         lib_slug = Library.objects.get(owner=user.id).slug
         response = self.client.get('/main/mylibrary/' + lib_slug + '/')
         self.assertEqual(response.status_code, 200)
+
+
+class BookTestCase(TestCase):
+
+    def Setup(self):
+        self.client = Client()
+
+    def test_ensure_book_created_with_not_null_name(self):
+        """
+        Ensures a book is created with correct information
+
+        Author: Aly Yakan
+        """
+        user = User.objects.create_user(username='johnnydoe',
+                                        password='123456')
+        response = self.client.post(
+            reverse('login'),
+            {'username': u'johnnydoe', 'password': '123456'})
+        self.assertEqual(response.status_code, 302)
+        lib = Library.objects.create(name='johnnylibrary',
+                                     location='here',
+                                     owner=user)
+        response = self.client.post(
+            reverse('book-add', kwargs={'slug': lib.slug}),
+            {'name': u'johnnydoe',
+             'author': 'johnny',
+             'library': lib.id})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Book.objects.all().count(), 1)
+
+    def test_ensure_book_not_created_with_null_name(self):
+        """
+        Ensures a book is not created with wrong information
+
+        Author: Aly Yakan
+        """
+        user = User.objects.create_user(username='johnnydoe',
+                                        password='123456')
+        response = self.client.post(
+            reverse('login'),
+            {'username': u'johnnydoe', 'password': '123456'})
+        self.assertEqual(response.status_code, 302)
+        lib = Library.objects.create(name='johnnylibrary',
+                                     location='here',
+                                     owner=user)
+        response = self.client.post(
+            reverse('book-add', kwargs={'slug': lib.slug}),
+            {'name': '',
+             'author': 'johnny',
+             'library': lib.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Book.objects.all().count(), 0)
+
+    def test_book_detailed_view_not_signed_in(self):
+        """
+        Ensures a guest can access a book's detailed view
+
+        Author: Aly Yakan
+        """
+        user = User.objects.create_user(username='johndoe',
+                                        password='123456')
+        lib = Library.objects.create(name='library',
+                                     location='here',
+                                     owner=user)
+        book = Book.objects.create(name='mybook',
+                                   author='me',
+                                   library=lib)
+        response = self.client.get('/main/mylibrary/' +
+                                   lib.slug +
+                                   '/book/' +
+                                   book.slug +
+                                   '/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_book_list_view_not_signed_in(self):
+        """
+        Ensures a guest can access books list view
+
+        Author: Aly Yakan
+        """
+        user = User.objects.create_user(username='johndoe',
+                                        password='123456')
+        lib = Library.objects.create(name='library',
+                                     location='here',
+                                     owner=user)
+        response = self.client.post(
+            reverse('book-add', kwargs={'slug': lib.slug}),
+            {'name': u'My Book',
+             'author': u'Me',
+             'library': lib.id})
+        self.assertEqual(response.status_code, 302)
+        response = self.client.post(
+            reverse('book-add', kwargs={'slug': lib.slug}),
+            {'name': u'My Book 2',
+             'author': u'Me',
+             'library': lib.id})
+        self.assertEqual(response.status_code, 302)
+
+        response = self.client.get('/main/book-list/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('object_list' in response.context)
+        self.assertEqual(
+            [Book.pk for Book in response.context['object_list']],
+            [1, 2])
