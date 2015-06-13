@@ -7,19 +7,22 @@
 	<h3><a href="{% url "library-list" %}">Libraries</a></h3>
 	<br>
 	<h3><a href="{% url "book-list" %}">Books</a></h3>
-	{% if user.is_authenticated %}
-		<h1>Welcome {{ user.username }}</h1>
-		<h4><a href="/main/logout/">Logout</a></h4><br />
-		<h4><a href="{% url "notification-list" %}">{{ count }} new notifications</a></h4>
-		{% if lib_id %}
-			<h4><a href="/main/mylibrary/{{lib_slug}}">View My Library</a></h4>
-		{% else %}
-			<h4><a href="/main/library/add">Add Your Library</a></h4>
-		{% endif %}
-	{% else %}
-		<h1>Welcome To MyLibrary</h1>
-		<h3><a href="/main/register/">Register Here</a></h3>
-		<h4><a href="{% url "login" %}">Login</a></h4>
-	{% endif %}
+		<div>
+			{% if user.is_authenticated %}
+				<h1>Welcome {{ user.username }}</h1>
+				<h4><a href="/messages/inbox/">Go to Inbox >></a></h4>
+				<h4><a href="/main/logout/">Logout</a></h4>
+				<h4><a href="{% url "notification-list" %}">{{ count }} new notifications</a></h4>
+				{% if lib_id %}
+					<h4><a href="/main/mylibrary/{{lib_slug}}">View My Library</a></h4>
+				{% else %}
+					<h4><a href="/main/library/add">Add Your Library</a></h4>
+				{% endif %}
+			{% else %}
+				<h1>Welcome To MyLibrary</h1>
+				<h3><a href="/main/register/">Register Here</a></h3>
+				<h4><a href="{% url "login" %}">Login</a></h4>
+			{% endif %}
+		</div>
 </body>
 </html>

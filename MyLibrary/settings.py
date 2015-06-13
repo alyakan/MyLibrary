@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
+    'postman',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -73,7 +74,9 @@ TEMPLATES = [
     },
 ]
 
-
+POSTMAN_AUTO_MODERATE_AS = True
+POSTMAN_DISALLOW_ANONYMOUS = True
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 WSGI_APPLICATION = 'MyLibrary.wsgi.application'
 
 
