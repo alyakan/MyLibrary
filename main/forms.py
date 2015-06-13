@@ -24,3 +24,12 @@ class BookForm(forms.ModelForm):
     class Meta:
         model = Book
         exclude = ['slug', 'id']
+
+
+class BookEditForm(forms.ModelForm):
+    name = forms.CharField()
+    author = forms.CharField()
+
+    class Meta:
+        model = Book
+        exclude = ['slug', 'id', 'library']
