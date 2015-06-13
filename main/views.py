@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from django.views.generic import TemplateView, DetailView
 from django.views.generic import ListView, DeleteView
-from main.forms import UserForm, BookForm
+from main.forms import UserForm, BookForm, BookEditForm
 from django.contrib.auth import authenticate, login
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.views.generic.edit import CreateView, FormView, View
 from main.models import Library, Book
 from main.models import Notification, NotificationCenter
@@ -201,30 +201,33 @@ class NotificationCreate(CreateView):
         Author: Aly Yakan
 
         """
-        library = Library.objects.get(id=instance.library_id)
-        actor = User.objects.get(id=library.owner_id)
-        book_name = Book.objects.get(id=instance.id).name
-        receivers = User.objects.exclude(id=actor.id)
-        if kwargs.get('created', False):
-            Notification.objects.get_or_create(
+        try:
+            library = Library.objects.get(id=instance.library_id)
+            actor = User.objects.get(id=library.owner_id)
+            book_name = Book.objects.get(id=instance.id).name
+            receivers = User.objects.exclude(id=actor.id)
+            if kwargs.get('created', False):
+                Notification.objects.get_or_create(
+                    verb=(library.name +
+                          " has added a new book: " +
+                          book_name),
+                    actor_id=actor.id,
+                    library_id=library.id,
+                    book_id=instance.id)
+            pass
+            notification = Notification.objects.get(
                 verb=(library.name +
                       " has added a new book: " +
                       book_name),
                 actor_id=actor.id,
                 library_id=library.id,
                 book_id=instance.id)
-        pass
-        notification = Notification.objects.get(
-            verb=(library.name +
-                  " has added a new book: " +
-                  book_name),
-            actor_id=actor.id,
-            library_id=library.id,
-            book_id=instance.id)
-        for rec in receivers:
-            NotificationCenter.objects.get_or_create(
-                receiver_id=rec.id,
-                notification_id=notification.id)
+            for rec in receivers:
+                NotificationCenter.objects.get_or_create(
+                    receiver_id=rec.id,
+                    notification_id=notification.id)
+        except:
+            var = 1
 
 
 class NotificationListView(ListView):
@@ -270,7 +273,7 @@ class NotificationListView(ListView):
             return context
 
 
-class ManageBooksFormView(FormView):
+class ManageBooksFormView(TemplateView):
     """
     Edits all books of a certain library.
 
@@ -281,7 +284,6 @@ class ManageBooksFormView(FormView):
     :template:`main/manage_books.html`
 
     """
-    from_class = BookForm
     template_name = "main/manage_books.html"
 
     def post(self, request, *args, **kwargs):
@@ -291,13 +293,16 @@ class ManageBooksFormView(FormView):
         Author: Aly Yakan
 
         """
-        BookFormSet = modelformset_factory(Book, form=BookForm, extra=0)
-        formset = BookFormSet(request.POST, request.FILES)
+        lib = Library.objects.get(owner_id=self.request.user)
+        books = Book.objects.filter(library=lib)
+        BookFormSet = modelformset_factory(Book, form=BookEditForm, extra=0)
+        formset = BookFormSet(request.POST, request.FILES, queryset=books)
         if formset.is_valid():
             formset.save()
             return HttpResponseRedirect(reverse('library-detail',
-                                                args=(self.kwargs['slug'],)))
-            pass
+                                        args=(self.kwargs['slug'],)))
+        else:
+            return HttpResponse('Error')
 
     def get(self, request, *args, **kwargs):
         """
@@ -306,10 +311,15 @@ class ManageBooksFormView(FormView):
         Author: Aly Yakan
 
         """
-        BookFormSet = modelformset_factory(Book, form=BookForm, extra=0)
-        formset = BookFormSet()
+        lib = Library.objects.get(owner_id=self.request.user)
+        books = Book.objects.filter(library=lib)
+        BookFormSet = modelformset_factory(Book, form=BookEditForm, extra=0)
+        formset = BookFormSet(queryset=books)
+        # for form in formset.forms:
+        #     form.initial['library'] = lib
         return render_to_response('main/manage_books.html',
-                                  {'formset': formset},
+                                  {'formset': formset,
+                                   'library': lib},
                                   context_instance=RequestContext(request))
 
 
@@ -355,7 +365,7 @@ class LibraryDetailView(PaginateMixin, DetailView):
         library = Library.objects.get(slug=lib_slug)
         context['library'] = library
         book_list = Book.objects.filter(library_id=library.id)
-        paginator = Paginator(book_list, 2)
+        paginator = Paginator(book_list, 10)
         page = self.request.GET.get('page')
         try:
             books = paginator.page(page)

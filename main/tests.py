@@ -266,6 +266,23 @@ class BookTestCase(TestCase):
             [Book.pk for Book in response.context['object_list']],
             [1, 2])
 
+    # def test_book_edit(self):
+    #     user = User.objects.create_user(username='johndoe',
+    #                                     password='123456')
+    #     lib = Library.objects.create(name='library',
+    #                                  location='here',
+    #                                  owner=user)
+    #     book = Book.objects.create(name='mybook',
+    #                                author='me',
+    #                                library=lib)
+    #     response = self.client.post(
+    #         reverse('manage-books',
+    #                 kwargs={'slug': lib.slug}),
+    #         {'name': 'ok'})
+    #     self.assertRedirects(response, reverse('libray-detail',
+    #                          kwargs={'slug': lib.slug}))
+    #     self.assertEqual(book.name, 'ok')
+
 
 class NotificationTestCase(TestCase):
 
