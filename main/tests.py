@@ -126,6 +126,14 @@ class LibraryTestCase(TestCase):
         user2 = User.objects.create_user(username='johnnydoe',
                                          password='123456')
         response = self.client.post(
+            reverse('login'),
+            {'username': u'johndoe', 'password': '123456'})
+        response = self.client.post(
+            reverse('login'),
+            {'username': u'johnnydoe', 'password': '123456'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 302)
+        response = self.client.post(
             reverse('library-add'),
             {'name': u'Cairo Library',
              'location': u'Cairo',
@@ -153,12 +161,16 @@ class LibraryTestCase(TestCase):
         user = User.objects.create_user(username='johndoe',
                                         password='123456')
         response = self.client.post(
+            reverse('login'),
+            {'username': u'johndoe', 'password': '123456'})
+        self.assertEqual(response.status_code, 302)
+        response = self.client.post(
             reverse('library-add'),
             {'name': u'Cairo Library',
              'location': u'Cairo',
              'owner': user.id})
         self.assertEqual(response.status_code, 302)
-        lib_slug = Library.objects.get(owner=user.id).slug
+        lib_slug = Library.objects.get(owner_id=user.id).slug
         response = self.client.get('/main/mylibrary/' + lib_slug + '/')
         self.assertEqual(response.status_code, 200)
 
@@ -247,6 +259,10 @@ class BookTestCase(TestCase):
                                      location='here',
                                      owner=user)
         response = self.client.post(
+            reverse('login'),
+            {'username': u'johndoe', 'password': '123456'})
+        self.assertEqual(response.status_code, 302)
+        response = self.client.post(
             reverse('book-add', kwargs={'slug': lib.slug}),
             {'name': u'My Book',
              'author': u'Me',
@@ -301,6 +317,10 @@ class NotificationTestCase(TestCase):
                                      location='here',
                                      owner=user)
         response = self.client.post(
+            reverse('login'),
+            {'username': u'johndoe', 'password': '123456'})
+        self.assertEqual(response.status_code, 302)
+        response = self.client.post(
             reverse('book-add', kwargs={'slug': lib.slug}),
             {'name': u'My Book',
              'author': u'Me',
@@ -323,6 +343,10 @@ class NotificationTestCase(TestCase):
         lib = Library.objects.create(name='library',
                                      location='here',
                                      owner=user)
+        response = self.client.post(
+            reverse('login'),
+            {'username': u'johnnydoe', 'password': '123456'})
+        self.assertEqual(response.status_code, 302)
         response = self.client.post(
             reverse('book-add', kwargs={'slug': lib.slug}),
             {'name': u'My Book',

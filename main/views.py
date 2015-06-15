@@ -20,10 +20,20 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
 
 
 class PaginateMixin(object):
     paginate_by = 5
+
+
+class LoginRequiredMixin(object):
+    @classmethod
+    def as_view(cls, **initkwargs):
+        view = super(LoginRequiredMixin, cls).as_view(**initkwargs)
+        return login_required(view, login_url="/main/login/")
 
 
 class IndexView(TemplateView):
@@ -35,7 +45,6 @@ class IndexView(TemplateView):
     **Template:**
 
     :template:`main/index.html`
-
     """
     template_name = "main/index.html"
 
@@ -54,11 +63,11 @@ class IndexView(TemplateView):
                 context['lib_id'] = lib_id
                 context['lib_slug'] = Library.objects.get(id=lib_id).slug
             except:
-                lib_id = ""
+                pass
             return context
 
 
-class BookCreate(CreateView):
+class BookCreate(LoginRequiredMixin, CreateView):
     """
     Creates a single book.
 
@@ -67,7 +76,6 @@ class BookCreate(CreateView):
     **Template:**
 
     :template:`main/book_form.html`
-
     """
     model = Book
     # fields = ['name', 'author', 'library']
@@ -100,6 +108,7 @@ class BookCreate(CreateView):
         Author: Aly Yakan
 
         """
+        messages.success(self.request, 'You have successfully added a book')
         lslug = self.kwargs['slug']
         return reverse('library-detail', args=(lslug,))
 
@@ -118,11 +127,24 @@ class BookListView(PaginateMixin, ListView):
     **Template:**
 
     :template:`main/book_list.html`
-
     """
     model = Book
     template_name = "main/book_list.html"
     context_object_name = "books"
+
+    def get_context_data(self, **kwargs):
+        """
+        Gets Context Data Used in main.html Template
+
+        Author: Aly Yakan
+        """
+        context = super(BookListView, self).get_context_data(**kwargs)
+        if self.request.user.is_authenticated():
+            current_user_id = self.request.user
+            context['count'] = NotificationCenter.objects.filter(
+                                receiver_id=current_user_id,
+                                read=0).count()
+        return context
 
 
 class BookDetailView(DetailView):
@@ -134,7 +156,6 @@ class BookDetailView(DetailView):
     **Template:**
 
     :template:`main/book_detail.html`
-
     """
     model = Book
     template_name = "main/book_detail.html"
@@ -152,7 +173,7 @@ class BookDetailView(DetailView):
         return context
 
 
-class BookDelete(DeleteView):
+class BookDelete(LoginRequiredMixin, DeleteView):
     """
     Deletes a single book.
 
@@ -161,7 +182,6 @@ class BookDelete(DeleteView):
     **Template:**
 
     :template:`main/book_delete.html`
-
     """
     model = Book
 
@@ -170,8 +190,8 @@ class BookDelete(DeleteView):
         Overrides get_success_url so i can provide the slug
 
         Author: Aly Yakan
-
         """
+        messages.success(self.request, 'You have successfully deleted a book')
         lslug = self.kwargs['lslug']
         return reverse('library-detail', args=(lslug,))
 
@@ -186,7 +206,6 @@ class NotificationCreate(CreateView):
     **Template:**
 
     :template:`main/notification_form.html`
-
     """
     model = Notification
     success_url = reverse_lazy('index')
@@ -199,7 +218,6 @@ class NotificationCreate(CreateView):
         of book creation.
 
         Author: Aly Yakan
-
         """
         try:
             library = Library.objects.get(id=instance.library_id)
@@ -208,13 +226,11 @@ class NotificationCreate(CreateView):
             receivers = User.objects.exclude(id=actor.id)
             if kwargs.get('created', False):
                 Notification.objects.get_or_create(
-                    verb=(library.name +
-                          " has added a new book: " +
-                          book_name),
+                    verb=("%s has added a new book: %s" % (
+                        library.name, book_name)),
                     actor_id=actor.id,
                     library_id=library.id,
                     book_id=instance.id)
-            pass
             notification = Notification.objects.get(
                 verb=(library.name +
                       " has added a new book: " +
@@ -227,10 +243,10 @@ class NotificationCreate(CreateView):
                     receiver_id=rec.id,
                     notification_id=notification.id)
         except:
-            var = 1
+            pass
 
 
-class NotificationListView(ListView):
+class NotificationListView(LoginRequiredMixin, ListView):
     """
     Lists all notifications of a user.
 
@@ -239,7 +255,6 @@ class NotificationListView(ListView):
     **Template:**
 
     :template:`main/notification_list.html`
-
     """
     model = NotificationCenter
     template_name = "main/notification_list.html"
@@ -254,26 +269,26 @@ class NotificationListView(ListView):
         if self.request.user.is_authenticated():
             current_user_id = self.request.user
             try:
+                var = NotificationCenter.objects.all()
+                context['read_notifications'] = var.filter(
+                    receiver_id=current_user_id, read=1)
                 object_list = NotificationCenter.objects.filter(
                     receiver_id=current_user_id,
                     read=0)
                 context['object_list'] = object_list
-                var = NotificationCenter.objects
-                context['read_notifications'] = var.filter(
-                    receiver_id=current_user_id, read=1)
-                for obj in object_list:
-                    obj.read = 1
-                    obj.save()
                 if object_list:
+                    for obj in object_list:
+                        obj.read = 1
+                        obj.save()
                     context['count'] = object_list.count()
                 else:
                     context['count'] = 0
             except:
-                lib_id = ""
+                pass
             return context
 
 
-class ManageBooksFormView(TemplateView):
+class ManageBooksFormView(LoginRequiredMixin, TemplateView):
     """
     Edits all books of a certain library.
 
@@ -282,7 +297,6 @@ class ManageBooksFormView(TemplateView):
     **Template:**
 
     :template:`main/manage_books.html`
-
     """
     template_name = "main/manage_books.html"
 
@@ -291,13 +305,13 @@ class ManageBooksFormView(TemplateView):
         Handles posting of the editing formset.
 
         Author: Aly Yakan
-
         """
         lib = Library.objects.get(owner_id=self.request.user)
         books = Book.objects.filter(library=lib)
         BookFormSet = modelformset_factory(Book, form=BookEditForm, extra=0)
         formset = BookFormSet(request.POST, request.FILES, queryset=books)
         if formset.is_valid():
+            messages.success(self.request, 'Update Successful')
             formset.save()
             return HttpResponseRedirect(reverse('library-detail',
                                         args=(self.kwargs['slug'],)))
@@ -309,21 +323,18 @@ class ManageBooksFormView(TemplateView):
         Handles retrieval of the editing formset.
 
         Author: Aly Yakan
-
         """
         lib = Library.objects.get(owner_id=self.request.user)
         books = Book.objects.filter(library=lib)
         BookFormSet = modelformset_factory(Book, form=BookEditForm, extra=0)
         formset = BookFormSet(queryset=books)
-        # for form in formset.forms:
-        #     form.initial['library'] = lib
         return render_to_response('main/manage_books.html',
                                   {'formset': formset,
                                    'library': lib},
                                   context_instance=RequestContext(request))
 
 
-class LibraryCreate(CreateView):
+class LibraryCreate(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     """
     Creates a single library.
 
@@ -332,12 +343,12 @@ class LibraryCreate(CreateView):
     **Template:**
 
     :template:`main/library_form.html`
-
     """
     model = Library
     fields = ['name', 'location', 'owner']
     success_url = reverse_lazy('index')
     template_name = 'main/library_form.html'
+    success_message = 'Your Library was Created Successfully'
 
 
 class LibraryDetailView(PaginateMixin, DetailView):
@@ -349,7 +360,6 @@ class LibraryDetailView(PaginateMixin, DetailView):
     **Template:**
 
     :template:`main/library_detail.html`
-
     """
     model = Library
     template = 'main/library-detail.html'
@@ -357,7 +367,6 @@ class LibraryDetailView(PaginateMixin, DetailView):
     def get_context_data(self, **kwargs):
         """
         Gets Context Data Used in library_list.html Template
-
         Author: Aly Yakan
         """
         context = super(LibraryDetailView, self).get_context_data(**kwargs)
@@ -367,6 +376,11 @@ class LibraryDetailView(PaginateMixin, DetailView):
         book_list = Book.objects.filter(library_id=library.id)
         paginator = Paginator(book_list, 10)
         page = self.request.GET.get('page')
+        if self.request.user.is_authenticated():
+            current_user_id = self.request.user
+            context['count'] = NotificationCenter.objects.filter(
+                                receiver_id=current_user_id,
+                                read=0).count()
         try:
             books = paginator.page(page)
         except PageNotAnInteger:
@@ -387,7 +401,6 @@ class LibraryListView(PaginateMixin, ListView):
     **Template:**
 
     :template:`main/library_list.html`
-
     """
     model = Library
     template_name = "main/library_list.html"
@@ -403,7 +416,6 @@ class RegisterView(FormView):
     **Template:**
 
     :template:`main/register.html`
-
     """
     form_class = UserForm
     template_name = 'main/register.html'
@@ -426,6 +438,7 @@ class RegisterView(FormView):
             login(request, user)
             return render(request, self.template_name, {'form': form,
                           'registered': registered})
+        messages.error(self.request, "Invalid username or password!")
         registered = False
         return render(request, self.template_name, {'form': form,
                       'registered': registered})
@@ -440,21 +453,21 @@ class LoginView(FormView):
     **Template:**
 
     :template:`main/book_list.html`
-
     """
     form_class = AuthenticationForm
     template_name = 'main/login.html'
 
     def form_valid(self, form):
-        # redirect_to = self.request.POST.get('next', '')
+        redirect_to = self.request.POST.get('next', '')
         auth_login(self.request, form.get_user())
         if self.request.session.test_cookie_worked():
             self.request.session.delete_test_cookie()
-        # l = len(redirect_to) - 1
-        # return HttpResponseRedirect("/main/library_list/")
+        if redirect_to:
+            return HttpResponseRedirect(reverse(redirect_to))
         return HttpResponseRedirect(reverse('index'))
 
     def form_invalid(self, form):
+        messages.error(self.request, "Wrong username or password!")
         return self.render_to_response(self.get_context_data(form=form))
 
     @method_decorator(sensitive_post_parameters('password'))
@@ -472,7 +485,6 @@ class LogoutView(View):
     **Template:**
 
     :template:`main/book_list.html`
-
     """
     def get(self, request, *args, **kwargs):
         auth_logout(request)

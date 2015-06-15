@@ -1,30 +1,88 @@
-
 <!DOCTYPE html>
+{% load staticfiles %}
 <html>
-<h4><a href="{% url "login" %}?next={{request.path}}">Login</a></h4>
-	{% block content %}
-	    <h2>Libraries</h2>
-	    <a href="/main/">Go Back Home</a>
-	    <ul>
-	        {% for library in object_list %}
-	            <a href="{% url "library-detail" library.slug %}"><li>{{ library.name }}</li></a>
-	        {% endfor %}
-	    </ul>
-	{% endblock %}
+	<head>
+		<meta charset="UTF-8">
+		<title>Browse Libraries</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
+		<script src="{% static 'js/jquery.min.js' %}"></script>
+		<script src="{% static 'js/skel.min.js' %}"></script>
+		<script src="{% static 'js/skel-layers.min.js' %}"></script>
+		<script src="{% static 'js/init.js' %}"></script>
+		<link rel="stylesheet" href="{% static "css/skel.css" %}" />
+		<link rel="stylesheet" href="{% static "css/style.css" %}" />
+		<link rel="stylesheet" href="{% static "css/style-xlarge.css" %}" />
+	</head>
+	<body class="landing">
+		<header id="header">
+			{% if user.is_authenticated %}
+				<h1>{{user.username}}</h1>
+			{% endif %}
+			<nav id="nav">
+				{% if user.is_authenticated %}
+				<ul>
+					<li><a href="/main/">Go Back Home</a></li>
+					<li><a href="/messages/inbox/">Inbox</a></li>
+					<li><a href="{% url "notification-list" %}">{{ count }} new notifications</a></li>
+					<li><a href="{% url "logout" %}">Logout</a></li>
+				</ul>
+				{% else %}
+				<ul>
+					<li><a href="/main/">Go Back Home</a></li>
+					<li><a href="/main/register/">Register Here</a></li>
+					<li><a href="{% url "login" %}">Login</a></li>
+				</ul>
+				{% endif %}
 
-	<div class="pagination">
-	    <span class="step-links">
-	        {% if page_obj.has_previous %}
-	            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-	        {% endif %}
+<!-- 					<h3>Browse all Libraries and Books</h2>
+				<h4><a href="{% url "library-list" %}">Libraries</a></h4>
+				<h4><a href="{% url "book-list" %}">Books</a></h4> -->
+			</nav>
+		</header>
+		<section id="banner" class="wrapper">
+			<div class="container">
+				<section>
+					<h2>Libraries</h2>
+					<div class="table-wrapper">
+						{% block content %}
+							<table class="alt">
+								<thead>
+									<tr>
+										<th>Name</th>
+										<th>Location</th>
+									</tr>
+								</thead>
+								<tbody>
+								{% for library in object_list %}
+									<tr>
+										<td><a href="{% url "library-detail" library.slug %}">{{ library.name }}</a></td>
+										<td>{{ library.location }}</td>
+									</tr>
+									{% endfor %}
+								</tbody>
+							</table>
+						{% endblock %}
+					</div>
+				</section>
+			</div>
+			<div class="pagination">
+			    <span class="step-links">
+			        {% if page_obj.has_previous %}
+			            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+			        {% endif %}
 
-	        <span class="current">
-	            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-	        </span>
+			        <span class="current">
+			            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+			        </span>
 
-	        {% if page_obj.has_next %}
-	            <a href="?page={{ page_obj.next_page_number }}">next</a>
-	        {% endif %}
-	    </span>
-	</div>
+			        {% if page_obj.has_next %}
+			            <a href="?page={{ page_obj.next_page_number }}">next</a>
+			        {% endif %}
+			    </span>
+			</div>
+		</section>
+	</body>
 </html>

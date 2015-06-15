@@ -1,6 +1,96 @@
 
 <!DOCTYPE html>
+{% load staticfiles %}
 <html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Browse Books</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
+		<script src="{% static 'js/jquery.min.js' %}"></script>
+		<script src="{% static 'js/skel.min.js' %}"></script>
+		<script src="{% static 'js/skel-layers.min.js' %}"></script>
+		<script src="{% static 'js/init.js' %}"></script>
+		<link rel="stylesheet" href="{% static "css/skel.css" %}" />
+		<link rel="stylesheet" href="{% static "css/style.css" %}" />
+		<link rel="stylesheet" href="{% static "css/style-xlarge.css" %}" />
+	</head>
+	<body class="landing">
+		<header id="header">
+			{% if user.is_authenticated %}
+				<h1>{{user.username}}</h1>
+			{% endif %}
+			<nav id="nav">
+				{% if user.is_authenticated %}
+				<ul>
+					<li><a href="/main/">Go Back Home</a></li>
+					<li><a href="/messages/inbox/">Inbox</a></li>
+					<li><a href="{% url "notification-list" %}">{{ count }} new notifications</a></li>
+					<li><a href="{% url "logout" %}">Logout</a></li>
+				</ul>
+				{% else %}
+				<ul>
+					<li><a href="/main/register/">Register Here</a></li>
+					<li><a href="{% url "login" %}">Login</a></li>
+				</ul>
+				{% endif %}
+			</nav>
+		</header>
+		<section id="banner" class="wrapper">
+			<div class="container">
+				<section>
+					<h2>Notifications</h2>
+					<div class="table-wrapper">
+							<table>
+								<thead>
+									<tr>
+										<th>New Notifications</th>
+									</tr>
+								</thead>
+								<tbody>
+									{% if object_list %}
+										{% for notification in object_list %}
+											<tr>
+												<td><a href="{% url "book-detail" notification.notification.book.library.slug notification.notification.book.slug %}">{{ notification.notification.verb }}</a></td>
+											</tr>
+										{% endfor %}
+									{% else %}
+										<tr>
+											<td>No New Notifications</td>
+										</tr>
+									{% endif %}
+								</tbody>
+							</table>
+							<br>
+							<table>
+								<thead>
+									<tr>
+										<th>Old Notifications</th>
+									</tr>
+								</thead>
+								<tbody>
+									{% if read_notifications %}
+										{% for notification in read_notifications %}
+											<tr>
+												<td><a href="{% url "book-detail" notification.notification.book.library.slug notification.notification.book.slug %}">{{ notification.notification.verb }}</a></td>
+											</tr>
+										{% endfor %}
+									{% else %}
+										<tr>
+											<td>No Old Notifications</td>
+										</tr>
+									{% endif %}
+								</tbody>
+							</table>
+					</div>
+				</section>
+			</div>
+		</section>
+	</body>
+</html>
+<!-- <html>
 	{% block content %}
 	    <h2>Notifications</h2>
 	    <a href="/main/">Go Back Home</a>
@@ -21,4 +111,4 @@
 	    {% endif %}
 	{% endblock %}
 
-</html>
+</html> -->

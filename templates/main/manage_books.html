@@ -1,19 +1,48 @@
 <!DOCTYPE html>
+{% load staticfiles %}
 <html>
-<head>
-	<title>Books Form Set</title>
-</head>
-<body>
-	<form method="post" action=""> 
+    <head>
+        <meta charset="UTF-8">
+        <title>Editing Books</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
+        <script src="{% static 'js/jquery.min.js' %}"></script>
+        <script src="{% static 'js/skel.min.js' %}"></script>
+        <script src="{% static 'js/skel-layers.min.js' %}"></script>
+        <script src="{% static 'js/init.js' %}"></script>
+        <link rel="stylesheet" href="{% static "css/skel.css" %}" />
+        <link rel="stylesheet" href="{% static "css/style.css" %}" />
+        <link rel="stylesheet" href="{% static "css/style-xlarge.css" %}" />
+        <!-- Is anyone getting tired of repeatedly entering the header over and over?? -->
+    </head>
 
-	    {{ formset.management_form }}
-	    <table>
-	        {% for form in formset %}
-		        {% csrf_token %}
-				{{form}}
-	        {% endfor %}
-	    </table>
-	    <input type="submit" name="submit" value="Submit Changes" />
-	</form>
-</body>
+    <body>
+    <section id="banner" class="wrapper align-center">
+        <div class="container">
+        <section>
+        	<a href="/main/"><i class="icon small rounded fa-home"></i></a>
+        	<br><br>
+            <h2>Edit Books</h2>
+            <form id="libraryform" method="post">
+                <div class="row uniform 50%">
+                    {{ formset.management_form }}
+				    <table class="alt">
+				        {% for form in formset %}
+				        	<tr>
+				        		{% csrf_token %}
+					        	{{ form.errors }}
+								{{ form.as_p }}
+				        	</tr>
+					        
+				        {% endfor %}
+				    </table>
+                </div>
+				<input type="submit" name="submit" value="Submit Changes" />
+            </form>
+        </section>
+        </div>
+        </section>
+    </body>
 </html>

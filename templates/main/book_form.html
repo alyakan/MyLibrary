@@ -1,22 +1,52 @@
 <!DOCTYPE html>
+{% load staticfiles %}
 <html>
     <head>
+        <meta charset="UTF-8">
         <title>Adding Books</title>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
+        <script src="{% static 'js/jquery.min.js' %}"></script>
+        <script src="{% static 'js/skel.min.js' %}"></script>
+        <script src="{% static 'js/skel-layers.min.js' %}"></script>
+        <script src="{% static 'js/init.js' %}"></script>
+        <link rel="stylesheet" href="{% static "css/skel.css" %}" />
+        <link rel="stylesheet" href="{% static "css/style.css" %}" />
+        <link rel="stylesheet" href="{% static "css/style-xlarge.css" %}" />
+        <!-- Is anyone getting tired of repeatedly entering the header over and over?? -->
     </head>
 
     <body>
-        <h1>Add a Book</h1>
-
-        <form id="bookform" method="post">
-            {{ form.errors }}
-            {% csrf_token %}
-            {{ form.name.label_tag }}
-            {{ form.name }}
-            {{ form.author.label_tag }}
-            {{ form.author }}
-            <input hidden id="library" size="20" type="text" name="library" value={{ library.id }}  >
-            <input type="submit" name="submit" value="Create Book" />
-        </form>
+    <section id="main" class="wrapper">
+        <div class="container">
+        <section>
+            <a href="/main/"><i class="icon small rounded fa-home"></i></a>
+            <br><br>
+            <h2>Add A Book</h2>
+            <form id="libraryform" method="post">
+                {{ form.errors }}
+                {% csrf_token %}
+                <div class="row uniform 50%">
+                    <div class="6u 12u$(xsmall)">
+                        <input type="text" name="name" value="" placeholder="Book's name" />
+                    </div>
+                    <div class="6u$ 12u$(xsmall)">
+                        <input type="text" name="author" value="" placeholder="Author" />
+                    </div>
+                    <div class="6u$ 12u$(xsmall)">
+                        <input type="hidden" id="library" size="20" type="text" name="library" value={{ library.id }}  >
+                    </div>
+                    <div class="12u$">
+                        <ul class="actions">
+                            <li><input type="submit" value="Submit" class="special" /></li>
+                        </ul>
+                    </div>
+                </div>
+            </form>
+        </section>
+        </div>
+        </section>
     </body>
-
 </html>
