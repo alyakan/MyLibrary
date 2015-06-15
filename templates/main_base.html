@@ -1,11 +1,49 @@
+{% load staticfiles %}
 <html>
 	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<!--[if lte IE 8]><script src="css/ie/html5shiv.js"></script><![endif]-->
+		<script src="{% static 'js/jquery.min.js' %}"></script>
+		<script src="{% static 'js/skel.min.js' %}"></script>
+		<script src="{% static 'js/skel-layers.min.js' %}"></script>
+		<script src="{% static 'js/init.js' %}"></script>
+		<link rel="stylesheet" href="{% static "css/skel.css" %}" />
+		<link rel="stylesheet" href="{% static "css/style.css" %}" />
+		<link rel="stylesheet" href="{% static "css/style-xlarge.css" %}" />
+		<!--[if lte IE 8]><link rel="stylesheet" href="css/ie/v8.css" /><![endif]-->
 		<title>{% block title %}{% endblock %}</title>
 		{% block extrahead %}{% endblock %}
 	</head>
-	<body>
-		<h4><a href="/main/">Back to home >></a></h4>
-		{% block postman_menu %}{% endblock %}
-		{% block content %}{% endblock %}
+	<body class="landing">
+		<section id="banner">
+			<a href="/main/"><i class="icon small rounded fa-home"></i></a>
+	        	<br><br>
+			<a href="/main/">Back to home</a>
+			<section id="one" class="wrapper align-left">
+				<div >
+					<div class="6u 12u(medium)">
+						<ul class="alt">
+					    	<li>
+								{% block postman_menu %}{% endblock %}
+					    	</li>
+						</ul>
+					</div>
+				</div>
+				<div >
+					<div class="6u 12u(medium)">
+						<ul class="alt">
+					    	<li>
+								{% block content %}{% endblock %}
+					    	</li>
+						</ul>
+					</div>
+				</div>
+
+			</section>
+			
+		</section>
 	</body>
 </html>

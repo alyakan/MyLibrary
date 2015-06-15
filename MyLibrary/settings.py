@@ -61,7 +61,8 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'APP_DIRS': True,
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates'),
+                 os.path.join(BASE_DIR, 'static')],
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -73,6 +74,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 POSTMAN_AUTO_MODERATE_AS = True
 POSTMAN_DISALLOW_ANONYMOUS = True
@@ -103,6 +105,13 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+STATIC_PATH = os.path.join(BASE_DIR, 'static')
+STATIC_URL = '/static/'
+STATICFILES_DIRS = (
+    STATIC_PATH,
+)
+
 
 PASSWORD_HASHERS = (
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
